@@ -6,7 +6,7 @@ import re
 import datetime
 import PyRSS2Gen
 import codecs
-
+from readability.readability import Document
 
 try:
     import xml.etree.cElementTree as ET
@@ -22,24 +22,9 @@ def zh2unicode(str):
             pass 
     return str
 
-def get_content(link, begin_tag, end_tag):
-    headers = {
-        'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'
-        }
-    req = urllib2.Request(
-        url = link,
-        headers = headers
-        )
-    try:
-        html = zh2unicode(urllib2.urlopen(req).read())
-    except urllib2.HTTPError:
-        html = link
-    try:
-        m = html.index(begin_tag)
-        n = html.index(end_tag)
-    except ValueError:
-        return link
-    return html[m:n]
+def get_content(link):
+    html = urllib2.urlopen(link).read()
+    return Document(html).summary()
 
 def gen_item(post_title, post_link, post_content):
     item = PyRSS2Gen.RSSItem(
@@ -57,7 +42,7 @@ def gen_rss(site_title, site_link, site_desp, site_items, rssname):
         items = site_items,)
     rss.write_xml(open('rss/'+ rssname + '.xml', 'w'), encoding='utf-8')
     
-def get_rss(rss_link, begin_tag, end_tag, rssname):
+def get_rss(rss_link, rssname):
     xml = urllib2.urlopen(rss_link).read()
     f = open('feed.xml', 'w')
     f.write(xml)
@@ -87,7 +72,7 @@ def get_rss(rss_link, begin_tag, end_tag, rssname):
                 elif element.tag == "link":
                     print element.text
                     post_link = element.text
-                    post_content = get_content(post_link, begin_tag, end_tag)
+                    post_content = get_content(post_link)
 
             item = gen_item(post_title, post_link, post_content)
             site_items.append(item)
