@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, sys, urllib2
-import re
+import sys
+import urllib2
 import datetime
+
 import PyRSS2Gen
-import codecs
 from readability.readability import Document
 
 try:
@@ -13,35 +13,41 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-def zh2unicode(str): 
-    for c in ('utf-8', 'gbk', 'big5', 'jp', 'euc_kr','utf16','utf32'): 
-        encc = c 
-        try: 
-            return str.decode(c) 
-        except: 
-            pass 
-    return str
+__version__ = '0.2'
+
+
+def zh2unicode(ascii):
+    for c in ('utf-8', 'gbk', 'big5', 'jp', 'euc_kr', 'utf16', 'utf32'):
+        try:
+            return ascii.decode(c)
+        except UnicodeDecodeError:
+            pass
+    return ascii
+
 
 def get_content(link):
     html = urllib2.urlopen(link).read()
     return Document(html).summary()
 
+
 def gen_item(post_title, post_link, post_content):
     item = PyRSS2Gen.RSSItem(
-        title = post_title,
-        link = post_link,
-        description = post_content,)
+        title=post_title,
+        link=post_link,
+        description=post_content, )
     return item
+
 
 def gen_rss(site_title, site_link, site_desp, site_items, rssname):
     rss = PyRSS2Gen.RSS2(
-        title = site_title,
-        link = site_link,
-        description = site_desp,
-        lastBuildDate = datetime.datetime.now(),
-        items = site_items,)
-    rss.write_xml(open('rss/'+ rssname + '.xml', 'w'), encoding='utf-8')
-    
+        title=site_title,
+        link=site_link,
+        description=site_desp,
+        lastBuildDate=datetime.datetime.now(),
+        items=site_items, )
+    rss.write_xml(open('rss/' + rssname + '.xml', 'w'), encoding='utf-8')
+
+
 def get_rss(rss_link, rssname):
     xml = urllib2.urlopen(rss_link).read()
     f = open('feed.xml', 'w')
