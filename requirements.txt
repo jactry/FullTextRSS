@@ -1,0 +1,2 @@
+readability-lxml
+PyRSS2Gen
